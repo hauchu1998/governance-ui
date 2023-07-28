@@ -83,7 +83,7 @@ export const useNftPluginMembersQuery = () => {
                 typeof collection.verified === 'undefined')
             )
           })
-          x.account.governingTokenDepositAmount = new BN(
+          x.account.governingTokenDepositAmount = new BN( // maybe should use add?
             verifiedNfts.length * 10 ** 6
           )
           return {

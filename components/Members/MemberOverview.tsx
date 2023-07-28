@@ -120,6 +120,17 @@ const getNftMetadataTooltip = (nft) => {
       </div>
       <div className="w-full">
         <p>
+          Name: <span className="font-bold">{nft.content.metadata.name}</span>
+        </p>
+        <p>
+          Symbol:{' '}
+          <span className="font-bold">{nft.content.metadata.symbol}</span>
+        </p>
+        <p>
+          Description:{' '}
+          <span className="font-bold">{nft.content.metadata.description}</span>
+        </p>
+        <p>
           {nft.compression.compressed ? 'Asset ID: ' : 'Address: '}{' '}
           <span className="font-bold">{nft.id}</span>
         </p>
