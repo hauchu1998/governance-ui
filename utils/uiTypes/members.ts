@@ -10,3 +10,7 @@ export interface Member {
   delegateWalletCouncil?: PublicKey
   delegateWalletCommunity?: PublicKey
 }
+
+export interface NftPluginMember extends Member {
+  nfts: any[]
+}

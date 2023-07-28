@@ -11,13 +11,13 @@ import { LinkButton } from '@components/Button'
 import MembersTabs from '@components/Members/MembersTabs'
 import Select from '@components/inputs/Select'
 import Input from '@components/inputs/Input'
-import { Member } from '@utils/uiTypes/members'
+import { NftPluginMember } from '@utils/uiTypes/members'
 import PaginationComponent from '@components/Pagination'
 import useWalletOnePointOh from '@hooks/useWalletOnePointOh'
 // import { useMembersQuery } from '@components/Members/useMembers'
 import { useNftPluginMembersQuery } from '@components/Members/useNftPluginMembers'
 
-const Members = () => {
+const NftPluginMembers = () => {
   const {
     realmInfo,
     toManyCouncilOutstandingProposalsForUse,
@@ -33,11 +33,13 @@ const Members = () => {
     canUseMintInstruction,
     canMintRealmCouncilToken,
   } = useGovernanceAssets()
-  const [paginatedMembers, setPaginatedMembers] = useState<Member[]>([])
-  const [activeMember, setActiveMember] = useState<Member>()
+  const [paginatedMembers, setPaginatedMembers] = useState<NftPluginMember[]>(
+    []
+  )
+  const [activeMember, setActiveMember] = useState<NftPluginMember>()
   const [openAddMemberModal, setOpenAddMemberModal] = useState(false)
   const [searchString, setSearchString] = useState('')
-  const [filteredMembers, setFilteredMembers] = useState<Member[]>([])
+  const [filteredMembers, setFilteredMembers] = useState<NftPluginMember[]>([])
 
   const filterMembers = (v) => {
     if (activeMembers !== undefined) {
@@ -184,7 +186,7 @@ const Members = () => {
                 activeTab={activeMember}
                 onChange={(t) => setActiveMember(t)}
                 tabs={paginatedMembers}
-                nft={'NFT'}
+                nftName="NFT"
               />
             )}
             <PaginationComponent
@@ -212,4 +214,4 @@ const Members = () => {
   )
 }
 
-export default Members
+export default NftPluginMembers

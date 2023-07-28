@@ -2,7 +2,7 @@ import { AccountInfo } from '@solana/spl-token'
 import { BN_ZERO } from '@solana/spl-governance'
 import { getTokenAccountsByMint, TokenProgramAccount } from '@utils/tokens'
 import { capitalize } from '@utils/helpers'
-import { Member } from 'utils/uiTypes/members'
+import { NftPluginMember } from 'utils/uiTypes/members'
 import { useRealmQuery } from '@hooks/queries/realm'
 import { useTokenOwnerRecordsForRealmQuery } from '@hooks/queries/tokenOwnerRecord'
 import { useQuery } from '@tanstack/react-query'
@@ -62,6 +62,7 @@ export const useNftPluginMembersQuery = () => {
                 walletAddress: x.account.governingTokenOwner.toString(),
                 council: x,
                 _kind: 'council' as const,
+                nfts: [],
               }))
           : []
 
@@ -89,6 +90,7 @@ export const useNftPluginMembersQuery = () => {
             walletAddress: x.account.governingTokenOwner.toString(),
             community: x,
             _kind: 'community' as const,
+            nfts: verifiedNfts,
           }
         })
       )
@@ -145,6 +147,7 @@ export const useNftPluginMembersQuery = () => {
               [votesPropoName]: memberToMatch.account.amount,
               communityVotes: BN_ZERO,
               [hasVotesOutsidePropName]: true,
+              nft: [],
             })
           }
         }
@@ -168,7 +171,7 @@ export const useNftPluginMembersQuery = () => {
             return {
               ...communityAndCouncilTokenRecords
                 .filter((x) => x.walletAddress === walletAddress)
-                .reduce<Member>(
+                .reduce<NftPluginMember>(
                   (acc, curr) => {
                     const obj = {
                       ...acc,
@@ -190,12 +193,16 @@ export const useNftPluginMembersQuery = () => {
                       obj.delegateWalletCouncil =
                         curr.council.account.governanceDelegate
                     }
+                    if (curr.nfts) {
+                      obj.nfts = curr.nfts
+                    }
                     return obj
                   },
                   {
                     walletAddress: '',
                     councilVotes: BN_ZERO,
                     communityVotes: BN_ZERO,
+                    nfts: [],
                   }
                 ),
             }

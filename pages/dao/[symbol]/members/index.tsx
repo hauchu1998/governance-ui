@@ -1,7 +1,8 @@
 import { NFT_PLUGINS_PKS } from '@constants/plugins'
 import Members from './Members'
-import { useRealmConfigQuery } from '@hooks/queries/realmConfig'
 import NftPluginMembers from './NftPluginMembers'
+import { useRealmConfigQuery } from '@hooks/queries/realmConfig'
+
 const MembersPage = () => {
   const config = useRealmConfigQuery().data?.result
   return (

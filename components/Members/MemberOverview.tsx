@@ -25,7 +25,7 @@ import { accountsToPubkeyMap } from '@tools/sdk/accounts'
 import { fmtMintAmount } from '@tools/sdk/units'
 import { notify } from '@utils/notifications'
 import tokenPriceService from '@utils/services/tokenPrice'
-import { Member } from '@utils/uiTypes/members'
+import { Member, NftPluginMember } from '@utils/uiTypes/members'
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import { WalletTokenRecordWithProposal } from './types'
 import PaginationComponent from '@components/Pagination'
@@ -109,7 +109,7 @@ const RevokeMembership: FC<{ member: PublicKey; mint: PublicKey }> = ({
   )
 }
 
-const MemberOverview = ({ member }: { member: Member }) => {
+const MemberOverview = ({ member }: { member: Member | NftPluginMember }) => {
   const programVersion = useProgramVersion()
   const realm = useRealmQuery().data?.result
   const config = useRealmConfigQuery().data?.result
@@ -356,6 +356,24 @@ const MemberOverview = ({ member }: { member: Member }) => {
               {ownVoteRecords.filter((v) => !isYesVote(v.account))?.length}
             </p>
           </div>
+        </div>
+      </div>
+      <div className="py-3 flex flex-col space-y-3 md:space-y-3 md:flex-row md:space-x-3 max-h-64">
+        <div className="bg-bkg-1 px-4 py-2 rounded-md w-full break-all flex items-center justify-center max-h-64">
+          {(communityAmount || !councilAmount) &&
+            (member as NftPluginMember).nfts && (
+              <span className="w-full mt-2 grid grid-cols-10 items-center gap-4 max-h-64 overflow-y-scroll">
+                {(member as NftPluginMember).nfts.map((nft) => {
+                  return (
+                    <img
+                      key={nft.id}
+                      className="w-12 h-12"
+                      src={nft.content.links?.image}
+                    />
+                  )
+                })}
+              </span>
+            )}
         </div>
       </div>
       <div className="pt-4">
