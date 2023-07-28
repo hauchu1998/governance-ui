@@ -159,7 +159,6 @@ export default function useVoteRecords(proposal?: ProgramAccount<Proposal>) {
     //VSR only
     const handleGetVsrVotingPowers = async (walletsPks: PublicKey[]) => {
       if (!realm || !client) throw new Error()
-
       const votingPerWallet = await getLockTokensVotingPowerPerWallet(
         walletsPks,
         realm,

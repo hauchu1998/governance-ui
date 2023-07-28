@@ -4,7 +4,7 @@ import tokenPriceService from '@utils/services/tokenPrice'
 import { fmtMintAmount } from '@tools/sdk/units'
 import { PublicKey } from '@solana/web3.js'
 import { AddressImage, DisplayAddress } from '@cardinal/namespaces-components'
-import { Member } from '@utils/uiTypes/members'
+import { Member, NftPluginMember } from '@utils/uiTypes/members'
 import { MintInfo } from '@solana/spl-token'
 import { useRealmQuery } from '@hooks/queries/realm'
 import {
@@ -14,15 +14,17 @@ import {
 import useLegacyConnectionContext from '@hooks/useLegacyConnectionContext'
 
 interface MembersTabsProps {
-  activeTab: Member
+  activeTab: Member | NftPluginMember
   onChange: (x) => void
-  tabs: Array<Member>
+  tabs: Array<Member | NftPluginMember>
+  nftName?: string
 }
 
 const MembersTabs: FunctionComponent<MembersTabsProps> = ({
   activeTab,
   onChange,
   tabs,
+  nftName, //this should be collection name?? but what if multiple collection
 }) => {
   const realm = useRealmQuery().data?.result
   const mint = useRealmCommunityMintInfoQuery().data?.result
@@ -31,6 +33,7 @@ const MembersTabs: FunctionComponent<MembersTabsProps> = ({
     ? tokenPriceService.getTokenInfo(realm?.account.communityMint.toBase58())
         ?.symbol
     : ''
+
   return (
     <div
       className={`overflow-y-auto relative thin-scroll`}
@@ -55,8 +58,9 @@ const MembersTabs: FunctionComponent<MembersTabsProps> = ({
               mint={mint}
               councilMint={councilMint}
               activeTab={activeTab}
-              tokenName={tokenName || ''}
+              tokenName={tokenName || nftName || ''}
               onChange={onChange}
+              nfts={(x as NftPluginMember).nfts}
             ></MemberItems>
           )
         )
@@ -74,13 +78,15 @@ const MemberItems = ({
   activeTab,
   tokenName,
   onChange,
-}: {
+}: // nfts,
+{
   member: Member
   mint?: MintInfo
   councilMint?: MintInfo
   activeTab: Member
   tokenName: string
   onChange: (member: Member) => void
+  nfts?: any[]
 }) => {
   const {
     walletAddress,
@@ -152,6 +158,19 @@ const MemberItems = ({
                 )}
               </span>
             )}
+            {/* {(communityAmount || !councilAmount) && nfts && (
+              <span className="mt-2 flex items-center gap-1">
+                {nfts.map((nft) => {
+                  return (
+                    <img
+                      key={nft.id}
+                      className="w-6 h-6"
+                      src={nft.content.links?.image}
+                    />
+                  )
+                })}
+              </span>
+            )} */}
             {councilAmount && (
               <span className="flex items-center">
                 Council Votes {councilAmount}{' '}
