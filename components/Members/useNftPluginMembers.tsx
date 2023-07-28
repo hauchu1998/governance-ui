@@ -215,7 +215,7 @@ export const useNftPluginMembersQuery = () => {
         fetchCouncilMembersWithTokensOutsideRealm(),
       ])
       members = matchMembers(members, councilMembers, 'council', true)
-      console.log(members)
+
       const activeMembers = members.filter(
         (x) => !x.councilVotes.isZero() || !x.communityVotes.isZero()
       )

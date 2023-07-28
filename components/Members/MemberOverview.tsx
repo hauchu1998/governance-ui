@@ -109,6 +109,31 @@ const RevokeMembership: FC<{ member: PublicKey; mint: PublicKey }> = ({
   )
 }
 
+const getNftMetadataTooltip = (nft) => {
+  // console.log(nft)
+  const collection = nft.grouping.find((x) => x.group_key === 'collection')
+    ?.group_value
+  return (
+    <div>
+      <div className="w-full text-center text-lg">
+        {nft.compression.compressed ? 'Compressed NFT' : 'NFT'}
+      </div>
+      <div className="w-full">
+        <p>
+          {nft.compression.compressed ? 'Asset ID: ' : 'Address: '}{' '}
+          <span className="font-bold">{nft.id}</span>
+        </p>
+        <p>
+          Ownership: <span className="font-bold">{nft.ownership.owner}</span>
+        </p>
+        <p>
+          Collection: <span className="font-bold">{collection}</span>
+        </p>
+      </div>
+    </div>
+  )
+}
+
 const MemberOverview = ({ member }: { member: Member | NftPluginMember }) => {
   const programVersion = useProgramVersion()
   const realm = useRealmQuery().data?.result
@@ -365,11 +390,12 @@ const MemberOverview = ({ member }: { member: Member | NftPluginMember }) => {
               <span className="w-full mt-2 grid grid-cols-10 items-center gap-4 max-h-64 overflow-y-scroll">
                 {(member as NftPluginMember).nfts.map((nft) => {
                   return (
-                    <img
-                      key={nft.id}
-                      className="w-12 h-12"
-                      src={nft.content.links?.image}
-                    />
+                    <Tooltip key={nft.id} content={getNftMetadataTooltip(nft)}>
+                      <img
+                        className="w-12 h-12"
+                        src={nft.content.links?.image}
+                      />
+                    </Tooltip>
                   )
                 })}
               </span>
