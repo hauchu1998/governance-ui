@@ -17,12 +17,14 @@ interface MembersTabsProps {
   activeTab: Member
   onChange: (x) => void
   tabs: Array<Member>
+  nft?: string
 }
 
 const MembersTabs: FunctionComponent<MembersTabsProps> = ({
   activeTab,
   onChange,
   tabs,
+  nft,
 }) => {
   const realm = useRealmQuery().data?.result
   const mint = useRealmCommunityMintInfoQuery().data?.result
@@ -30,7 +32,7 @@ const MembersTabs: FunctionComponent<MembersTabsProps> = ({
   const tokenName = realm
     ? tokenPriceService.getTokenInfo(realm?.account.communityMint.toBase58())
         ?.symbol
-    : ''
+    : nft ?? ''
   return (
     <div
       className={`overflow-y-auto relative thin-scroll`}
