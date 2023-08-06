@@ -43,7 +43,7 @@ export const getUsedNftWeightRecordsForOwner = async (
     [
       {
         memcmp: {
-          offset: 8,
+          offset: 0,
           bytes: owner.toBase58(),
         },
       },
@@ -83,8 +83,8 @@ export const getNftWeightRecordProgramAddress = async (
   ] = await PublicKey.findProgramAddress(
     [
       Buffer.from('nft-weight-record'),
-      owner.toBuffer(),
       new PublicKey(nftMintAddress).toBuffer(),
+      owner.toBuffer(),
     ],
     clientProgramId
   )
