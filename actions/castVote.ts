@@ -250,6 +250,7 @@ export async function castVote(
             batchIdx
           ),
           sequenceType:
+            // this is to ensure create all the nft_weight_records account first
             batchIdx === 0 ? SequenceType.Sequential : SequenceType.Parallel,
         }
       }),
