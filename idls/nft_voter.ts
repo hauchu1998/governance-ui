@@ -359,7 +359,7 @@ export type NftVoter = {
       ]
     },
     {
-      "name": "createNftWeightRecord",
+      "name": "createNftVoteTicket",
       "accounts": [
         {
           "name": "registrar",
@@ -390,7 +390,7 @@ export type NftVoter = {
       "args": []
     },
     {
-      "name": "createCnftWeightRecord",
+      "name": "createCnftVoteTicket",
       "accounts": [
         {
           "name": "registrar",
@@ -476,7 +476,7 @@ export type NftVoter = {
       }
     },
     {
-      "name": "nftWeightRecord",
+      "name": "nftVoteTicket",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1445,7 +1445,7 @@ export const IDL: NftVoter = {
       ]
     },
     {
-      "name": "createNftWeightRecord",
+      "name": "createNftVoteTicket",
       "accounts": [
         {
           "name": "registrar",
@@ -1476,7 +1476,7 @@ export const IDL: NftVoter = {
       "args": []
     },
     {
-      "name": "createCnftWeightRecord",
+      "name": "createCnftVoteTicket",
       "accounts": [
         {
           "name": "registrar",
@@ -1562,7 +1562,7 @@ export const IDL: NftVoter = {
       }
     },
     {
-      "name": "nftWeightRecord",
+      "name": "nftVoteTicket",
       "type": {
         "kind": "struct",
         "fields": [

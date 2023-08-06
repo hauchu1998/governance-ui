@@ -10,7 +10,7 @@ export interface NftVoteRecord {
   publicKey: PublicKey
 }
 
-export interface NftWeightRecord {
+export interface NftVoteTicket {
   account: {
     nft_owner: PublicKey
     weight: BN
@@ -35,21 +35,21 @@ export const getUsedNftsForProposal = async (
   return nftVoteRecordsFiltered
 }
 
-export const getUsedNftWeightRecordsForOwner = async (
+export const getVoterNftVoteTicketsForRegistrar = async (
   client: NftVoterClient,
-  owner: PublicKey
+  registrar: PublicKey
 ) => {
-  const nftWeightRecordsFiltered = ((await client.program.account.nftWeightRecord.all(
+  const nftVoteTicketsFiltered = ((await client.program.account.nftVoteTicket.all(
     [
       {
         memcmp: {
           offset: 8,
-          bytes: owner.toBase58(),
+          bytes: registrar.toBase58(),
         },
       },
     ]
-  )) as unknown) as NftWeightRecord[]
-  return nftWeightRecordsFiltered
+  )) as unknown) as NftVoteTicket[]
+  return nftVoteTicketsFiltered
 }
 
 export const getNftVoteRecordProgramAddress = async (
@@ -72,25 +72,22 @@ export const getNftVoteRecordProgramAddress = async (
   }
 }
 
-export const getNftWeightRecordProgramAddress = async (
+export const getNftVoteTicketProgramAddress = async (
   nftMintAddress: string,
-  owner: PublicKey,
+  registrar: PublicKey,
   clientProgramId: PublicKey
 ) => {
-  const [
-    nftWeightRecord,
-    nftWeightRecordBump,
-  ] = await PublicKey.findProgramAddress(
+  const [nftVoteTicket, nftVoteTicketBump] = await PublicKey.findProgramAddress(
     [
       Buffer.from('nft-weight-record'),
-      owner.toBuffer(),
+      registrar.toBuffer(),
       new PublicKey(nftMintAddress).toBuffer(),
     ],
     clientProgramId
   )
 
   return {
-    nftWeightRecord,
-    nftWeightRecordBump,
+    nftVoteTicket,
+    nftVoteTicketBump,
   }
 }
