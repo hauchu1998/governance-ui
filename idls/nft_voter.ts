@@ -163,7 +163,7 @@ export type NftVoter = {
       "args": []
     },
     {
-      "name": "updateNftVoterWeightRecord",
+      "name": "updateVoterWeightRecord",
       "accounts": [
         {
           "name": "registrar",
@@ -177,39 +177,11 @@ export type NftVoter = {
           "name": "voterWeightRecord",
           "isMut": true,
           "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "voterWeightAction",
-          "type": {
-            "defined": "VoterWeightAction"
-          }
-        }
-      ]
-    },
-    {
-      "name": "updateCnftVoterWeightRecord",
-      "accounts": [
-        {
-          "name": "registrar",
-          "isMut": false,
-          "isSigner": false
         },
         {
-          "name": "voterWeightRecord",
+          "name": "payer",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "leafOwner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "compressionProgram",
-          "isMut": false,
-          "isSigner": false
+          "isSigner": true
         }
       ],
       "args": [
@@ -217,14 +189,6 @@ export type NftVoter = {
           "name": "voterWeightAction",
           "type": {
             "defined": "VoterWeightAction"
-          }
-        },
-        {
-          "name": "params",
-          "type": {
-            "vec": {
-              "defined": "CompressedNftAsset"
-            }
           }
         }
       ]
@@ -360,7 +324,8 @@ export type NftVoter = {
           "isMut": false,
           "isSigner": false,
           "docs": [
-            "TokenOwnerRecord of the voter who casts the vote"
+            "TokenOwnerRecord of the voter who casts the vote",
+            "/// CHECK: Owned by spl-governance instance specified in registrar.governance_program_id"
           ]
         },
         {
@@ -394,7 +359,7 @@ export type NftVoter = {
       ]
     },
     {
-      "name": "castCompressedNftVote",
+      "name": "createNftWeightRecord",
       "accounts": [
         {
           "name": "registrar",
@@ -407,8 +372,34 @@ export type NftVoter = {
           "isSigner": false
         },
         {
-          "name": "voterTokenOwnerRecord",
+          "name": "voterAuthority",
           "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "createCnftWeightRecord",
+      "accounts": [
+        {
+          "name": "registrar",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "voterWeightRecord",
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -439,43 +430,11 @@ export type NftVoter = {
       ],
       "args": [
         {
-          "name": "proposal",
-          "type": "publicKey"
-        },
-        {
           "name": "params",
           "type": {
             "vec": {
               "defined": "CompressedNftAsset"
             }
-          }
-        }
-      ]
-    },
-    {
-      "name": "verifyCnftMetadata",
-      "accounts": [
-        {
-          "name": "leafOwner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "compressionProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "params",
-          "type": {
-            "defined": "CompressedNftAsset"
           }
         }
       ]
@@ -512,6 +471,22 @@ export type NftVoter = {
               "It's a Realm member pubkey corresponding to TokenOwnerRecord.governing_token_owner"
             ],
             "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "nftWeightRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "nftOwner",
+            "type": "publicKey"
+          },
+          {
+            "name": "weight",
+            "type": "u64"
           }
         ]
       }
@@ -1090,6 +1065,21 @@ export type NftVoter = {
       "code": 6032,
       "name": "LeafOwnerMustBeVoterAuthority",
       "msg": "Leaf Owner Must Be Voter Authority"
+    },
+    {
+      "code": 6033,
+      "name": "AccountDataNotEmpty",
+      "msg": "Account Data Not Empty"
+    },
+    {
+      "code": 6034,
+      "name": "NftFailedVerification",
+      "msg": "NFT Failed Verification"
+    },
+    {
+      "code": 6035,
+      "name": "InvalidPdaOwner",
+      "msg": "Invalid PDA Owner"
     }
   ]
 };
@@ -1259,7 +1249,7 @@ export const IDL: NftVoter = {
       "args": []
     },
     {
-      "name": "updateNftVoterWeightRecord",
+      "name": "updateVoterWeightRecord",
       "accounts": [
         {
           "name": "registrar",
@@ -1273,39 +1263,11 @@ export const IDL: NftVoter = {
           "name": "voterWeightRecord",
           "isMut": true,
           "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "voterWeightAction",
-          "type": {
-            "defined": "VoterWeightAction"
-          }
-        }
-      ]
-    },
-    {
-      "name": "updateCnftVoterWeightRecord",
-      "accounts": [
-        {
-          "name": "registrar",
-          "isMut": false,
-          "isSigner": false
         },
         {
-          "name": "voterWeightRecord",
+          "name": "payer",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "leafOwner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "compressionProgram",
-          "isMut": false,
-          "isSigner": false
+          "isSigner": true
         }
       ],
       "args": [
@@ -1313,14 +1275,6 @@ export const IDL: NftVoter = {
           "name": "voterWeightAction",
           "type": {
             "defined": "VoterWeightAction"
-          }
-        },
-        {
-          "name": "params",
-          "type": {
-            "vec": {
-              "defined": "CompressedNftAsset"
-            }
           }
         }
       ]
@@ -1456,7 +1410,8 @@ export const IDL: NftVoter = {
           "isMut": false,
           "isSigner": false,
           "docs": [
-            "TokenOwnerRecord of the voter who casts the vote"
+            "TokenOwnerRecord of the voter who casts the vote",
+            "/// CHECK: Owned by spl-governance instance specified in registrar.governance_program_id"
           ]
         },
         {
@@ -1490,7 +1445,7 @@ export const IDL: NftVoter = {
       ]
     },
     {
-      "name": "castCompressedNftVote",
+      "name": "createNftWeightRecord",
       "accounts": [
         {
           "name": "registrar",
@@ -1503,8 +1458,34 @@ export const IDL: NftVoter = {
           "isSigner": false
         },
         {
-          "name": "voterTokenOwnerRecord",
+          "name": "voterAuthority",
           "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "createCnftWeightRecord",
+      "accounts": [
+        {
+          "name": "registrar",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "voterWeightRecord",
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1535,43 +1516,11 @@ export const IDL: NftVoter = {
       ],
       "args": [
         {
-          "name": "proposal",
-          "type": "publicKey"
-        },
-        {
           "name": "params",
           "type": {
             "vec": {
               "defined": "CompressedNftAsset"
             }
-          }
-        }
-      ]
-    },
-    {
-      "name": "verifyCnftMetadata",
-      "accounts": [
-        {
-          "name": "leafOwner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "payer",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "compressionProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "params",
-          "type": {
-            "defined": "CompressedNftAsset"
           }
         }
       ]
@@ -1608,6 +1557,22 @@ export const IDL: NftVoter = {
               "It's a Realm member pubkey corresponding to TokenOwnerRecord.governing_token_owner"
             ],
             "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "nftWeightRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "nftOwner",
+            "type": "publicKey"
+          },
+          {
+            "name": "weight",
+            "type": "u64"
           }
         ]
       }
@@ -2186,6 +2151,21 @@ export const IDL: NftVoter = {
       "code": 6032,
       "name": "LeafOwnerMustBeVoterAuthority",
       "msg": "Leaf Owner Must Be Voter Authority"
+    },
+    {
+      "code": 6033,
+      "name": "AccountDataNotEmpty",
+      "msg": "Account Data Not Empty"
+    },
+    {
+      "code": 6034,
+      "name": "NftFailedVerification",
+      "msg": "NFT Failed Verification"
+    },
+    {
+      "code": 6035,
+      "name": "InvalidPdaOwner",
+      "msg": "Invalid PDA Owner"
     }
   ]
 };
