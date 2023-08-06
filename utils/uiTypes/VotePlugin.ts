@@ -33,6 +33,7 @@ import { VsrClient } from 'VoteStakeRegistry/sdk/client'
 import {
   getNftVoteRecordProgramAddress,
   getNftWeightRecordProgramAddress,
+  getUsedNftWeightRecordsForUser,
   getUsedNftsForProposal,
 } from 'NftVotePlugin/accounts'
 import { PositionWithMeta } from 'HeliumVotePlugin/sdk/types'
@@ -280,6 +281,11 @@ export class VotingClient {
         instructions
       )
 
+      /// this should add walletPk to the list of oracles
+      const nftWeightRecordsFiltered = await getUsedNftWeightRecordsForUser(
+        this.client
+      )
+
       // udpate voter weight record can upmost encapsulate 10 nfts
       const firstTenNfts = this.votingNfts.slice(0, 10)
       const nftWeightRecordAccounts: AccountData[] = []
@@ -287,26 +293,31 @@ export class VotingClient {
       const nfts = firstTenNfts.filter((x) => !x.compression.compressed)
       const nftRemainingAccounts: AccountData[] = []
       for (const nft of nfts) {
-        const tokenAccount = await getAssociatedTokenAddress(
-          new PublicKey(nft.id),
-          walletPk,
-          true
-        )
-        const metadata = await fetchNFTbyMint(
-          this.client.program.provider.connection,
-          new PublicKey(nft.id)
-        )
-
         const { nftWeightRecord } = await getNftWeightRecordProgramAddress(
           nft.id,
           clientProgramId
         )
+        if (
+          !nftWeightRecordsFiltered.find(
+            (x) => x.publicKey.toBase58 === nftWeightRecord.toBase58
+          )
+        ) {
+          const tokenAccount = await getAssociatedTokenAddress(
+            new PublicKey(nft.id),
+            walletPk,
+            true
+          )
+          const metadata = await fetchNFTbyMint(
+            this.client.program.provider.connection,
+            new PublicKey(nft.id)
+          )
+          nftRemainingAccounts.push(
+            new AccountData(tokenAccount),
+            new AccountData(metadata?.result?.metadataAddress || ''),
+            new AccountData(nftWeightRecord, false, true)
+          )
+        }
 
-        nftRemainingAccounts.push(
-          new AccountData(tokenAccount),
-          new AccountData(metadata?.result?.metadataAddress || ''),
-          new AccountData(nftWeightRecord, false, true)
-        )
         nftWeightRecordAccounts.push(
           new AccountData(nftWeightRecord, false, true)
         )
@@ -333,43 +344,43 @@ export class VotingClient {
         (x) => x.compression.compressed
       )
       for (const cnft of compressedNfts) {
-        const {
-          param,
-          additionalAccounts,
-        } = await getCompressedNftParamAndProof(
-          this.client.program.provider.connection,
-          cnft
-        )
-
         const { nftWeightRecord } = await getNftWeightRecordProgramAddress(
           cnft.id,
           clientProgramId
         )
+        if (
+          !nftWeightRecordsFiltered.find(
+            (x) => x.publicKey.toBase58 === nftWeightRecord.toBase58
+          )
+        ) {
+          const {
+            param,
+            additionalAccounts,
+          } = await getCompressedNftParamAndProof(
+            this.client.program.provider.connection,
+            cnft
+          )
+          const instruction = await this.client.program.methods
+            .createCnftWeightRecord([param])
+            .accounts({
+              registrar,
+              voterWeightRecord: voterWeightPk,
+              leafOwner: new PublicKey(cnft.ownership.owner),
+              compressionProgram: ACCOUNT_COMPACTION_PROGRAM_ID,
+            })
+            .remainingAccounts([
+              ...additionalAccounts,
+              new AccountData(nftWeightRecord, false, true),
+            ])
+            .instruction()
+          instructions.push(instruction)
+        }
 
-        const instruction = await this.client.program.methods
-          .createCnftWeightRecord([param])
-          .accounts({
-            registrar,
-            voterWeightRecord: voterWeightPk,
-            leafOwner: new PublicKey(cnft.ownership.owner),
-            compressionProgram: ACCOUNT_COMPACTION_PROGRAM_ID,
-          })
-          .remainingAccounts([
-            ...additionalAccounts,
-            new AccountData(nftWeightRecord, false, true),
-          ])
-          .instruction()
-        instructions.push(instruction)
         nftWeightRecordAccounts.push(
           new AccountData(nftWeightRecord, false, true)
         )
       }
 
-      console.log(
-        'Update voter weight record -> create nft weight record instructions should be: ',
-        instructions.length
-      )
-      console.log('Remaining accounts: ', nftWeightRecordAccounts.length)
       const updateVoterWeightRecordIx = await this.client.program.methods
         .updateVoterWeightRecord({ [type]: {} })
         .accounts({
@@ -588,6 +599,9 @@ export class VotingClient {
         this.client,
         proposal.pubkey
       )
+      const nftWeightRecordsFiltered = await getUsedNftWeightRecordsForUser(
+        this.client
+      )
       const castVoteRemainingAccounts: AccountData[] = []
 
       // create nft weight records for all nfts
@@ -604,25 +618,32 @@ export class VotingClient {
             (x) => x.publicKey.toBase58() === nftVoteRecord.toBase58()
           )
         ) {
-          const tokenAccount = await getAssociatedTokenAddress(
-            new PublicKey(nft.id),
-            walletPk,
-            true
-          )
-          const metadata = await fetchNFTbyMint(
-            this.client.program.provider.connection,
-            new PublicKey(nft.id)
-          )
-
           const { nftWeightRecord } = await getNftWeightRecordProgramAddress(
             nft.id,
             clientProgramId
           )
-          nftRemainingAccounts.push(
-            new AccountData(tokenAccount),
-            new AccountData(metadata?.result?.metadataAddress || ''),
-            new AccountData(nftWeightRecord, false, true)
-          )
+
+          if (
+            !nftWeightRecordsFiltered.find(
+              (x) => x.publicKey.toBase58() === nftWeightRecord.toBase58()
+            )
+          ) {
+            const tokenAccount = await getAssociatedTokenAddress(
+              new PublicKey(nft.id),
+              walletPk,
+              true
+            )
+            const metadata = await fetchNFTbyMint(
+              this.client.program.provider.connection,
+              new PublicKey(nft.id)
+            )
+
+            nftRemainingAccounts.push(
+              new AccountData(tokenAccount),
+              new AccountData(metadata?.result?.metadataAddress || ''),
+              new AccountData(nftWeightRecord, false, true)
+            )
+          }
           castVoteRemainingAccounts.push(
             new AccountData(nft.id),
             new AccountData(nftWeightRecord, false, true),
@@ -661,33 +682,40 @@ export class VotingClient {
             (x) => x.publicKey.toBase58() === nftVoteRecord.toBase58()
           )
         ) {
-          const {
-            param,
-            additionalAccounts,
-          } = await getCompressedNftParamAndProof(
-            this.client.program.provider.connection,
-            cnft
-          )
-
           const { nftWeightRecord } = await getNftWeightRecordProgramAddress(
             cnft.id,
             clientProgramId
           )
 
-          const instruction = await this.client.program.methods
-            .createCnftWeightRecord([param])
-            .accounts({
-              registrar,
-              voterWeightRecord: voterWeightPk,
-              leafOwner: new PublicKey(cnft.ownership.owner),
-              compressionProgram: ACCOUNT_COMPACTION_PROGRAM_ID,
-            })
-            .remainingAccounts([
-              ...additionalAccounts,
-              new AccountData(nftWeightRecord, false, true),
-            ])
-            .instruction()
-          createNftWeightRecordIxs?.push(instruction)
+          if (
+            !nftWeightRecordsFiltered.find(
+              (x) => x.publicKey.toBase58() === nftWeightRecord.toBase58()
+            )
+          ) {
+            const {
+              param,
+              additionalAccounts,
+            } = await getCompressedNftParamAndProof(
+              this.client.program.provider.connection,
+              cnft
+            )
+
+            const instruction = await this.client.program.methods
+              .createCnftWeightRecord([param])
+              .accounts({
+                registrar,
+                voterWeightRecord: voterWeightPk,
+                leafOwner: new PublicKey(cnft.ownership.owner),
+                compressionProgram: ACCOUNT_COMPACTION_PROGRAM_ID,
+              })
+              .remainingAccounts([
+                ...additionalAccounts,
+                new AccountData(nftWeightRecord, false, true),
+              ])
+              .instruction()
+            createNftWeightRecordIxs?.push(instruction)
+          }
+
           castVoteRemainingAccounts.push(
             new AccountData(cnft.id),
             new AccountData(nftWeightRecord, false, true),

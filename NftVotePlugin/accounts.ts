@@ -1,10 +1,19 @@
 import { NftVoterClient } from '@utils/uiTypes/NftVoterClient'
 import { PublicKey } from '@solana/web3.js'
+import { BN } from '@coral-xyz/anchor'
 export interface NftVoteRecord {
   account: {
     governingTokenOwner: PublicKey
     nftMint: PublicKey
     proposal: PublicKey
+  }
+  publicKey: PublicKey
+}
+
+export interface NftWeightRecord {
+  account: {
+    nft_owner: PublicKey
+    weight: BN
   }
   publicKey: PublicKey
 }
@@ -24,6 +33,14 @@ export const getUsedNftsForProposal = async (
     ]
   )) as NftVoteRecord[]
   return nftVoteRecordsFiltered
+}
+
+export const getUsedNftWeightRecordsForUser = async (
+  client: NftVoterClient
+  //walletPk: PublicKey
+) => {
+  const nftWeightRecordsFiltered = ((await client.program.account.nftWeightRecord.all()) as unknown) as NftWeightRecord[]
+  return nftWeightRecordsFiltered
 }
 
 export const getNftVoteRecordProgramAddress = async (
@@ -50,11 +67,16 @@ export const getNftWeightRecordProgramAddress = async (
   nftMintAddress: string,
   clientProgramId: PublicKey
 ) => {
-  const [nftWeightRecord, nftWeightRecordBump] =
-    await PublicKey.findProgramAddress(
-      [Buffer.from('nft-weight-record'), new PublicKey(nftMintAddress).toBuffer()],
-      clientProgramId
-    )
+  const [
+    nftWeightRecord,
+    nftWeightRecordBump,
+  ] = await PublicKey.findProgramAddress(
+    [
+      Buffer.from('nft-weight-record'),
+      new PublicKey(nftMintAddress).toBuffer(),
+    ],
+    clientProgramId
+  )
 
   return {
     nftWeightRecord,

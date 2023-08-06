@@ -230,11 +230,7 @@ export async function castVote(
     const createNftWeightRecordsChunks = chunks(createNftWeightRecordIxs, 1)
     const splIxsWithAccountsChunk = chunks(ixsWithOwnChunk, 2)
     const nftsAccountsChunks = chunks(remainingIxsToChunk, 2)
-    console.log(
-      createNftWeightRecordsChunks,
-      splIxsWithAccountsChunk,
-      nftsAccountsChunks
-    )
+
     const instructionsChunks = [
       ...createNftWeightRecordsChunks.map((txBatch, batchIdx) => {
         return {
