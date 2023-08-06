@@ -33,7 +33,7 @@ import { VsrClient } from 'VoteStakeRegistry/sdk/client'
 import {
   getNftVoteRecordProgramAddress,
   getNftWeightRecordProgramAddress,
-  getUsedNftWeightRecordsForUser,
+  getUsedNftWeightRecordsForOwner,
   getUsedNftsForProposal,
 } from 'NftVotePlugin/accounts'
 import { PositionWithMeta } from 'HeliumVotePlugin/sdk/types'
@@ -282,8 +282,9 @@ export class VotingClient {
       )
 
       /// this should add walletPk to the list of oracles
-      const nftWeightRecordsFiltered = await getUsedNftWeightRecordsForUser(
-        this.client
+      const nftWeightRecordsFiltered = await getUsedNftWeightRecordsForOwner(
+        this.client,
+        walletPk
       )
 
       // udpate voter weight record can upmost encapsulate 10 nfts
@@ -295,6 +296,7 @@ export class VotingClient {
       for (const nft of nfts) {
         const { nftWeightRecord } = await getNftWeightRecordProgramAddress(
           nft.id,
+          walletPk,
           clientProgramId
         )
         if (
@@ -346,6 +348,7 @@ export class VotingClient {
       for (const cnft of compressedNfts) {
         const { nftWeightRecord } = await getNftWeightRecordProgramAddress(
           cnft.id,
+          walletPk,
           clientProgramId
         )
         if (
@@ -599,8 +602,9 @@ export class VotingClient {
         this.client,
         proposal.pubkey
       )
-      const nftWeightRecordsFiltered = await getUsedNftWeightRecordsForUser(
-        this.client
+      const nftWeightRecordsFiltered = await getUsedNftWeightRecordsForOwner(
+        this.client,
+        walletPk
       )
       const castVoteRemainingAccounts: AccountData[] = []
 
@@ -620,6 +624,7 @@ export class VotingClient {
         ) {
           const { nftWeightRecord } = await getNftWeightRecordProgramAddress(
             nft.id,
+            walletPk,
             clientProgramId
           )
 
@@ -684,6 +689,7 @@ export class VotingClient {
         ) {
           const { nftWeightRecord } = await getNftWeightRecordProgramAddress(
             cnft.id,
+            walletPk,
             clientProgramId
           )
 

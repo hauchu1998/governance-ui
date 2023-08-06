@@ -35,11 +35,20 @@ export const getUsedNftsForProposal = async (
   return nftVoteRecordsFiltered
 }
 
-export const getUsedNftWeightRecordsForUser = async (
-  client: NftVoterClient
-  //walletPk: PublicKey
+export const getUsedNftWeightRecordsForOwner = async (
+  client: NftVoterClient,
+  owner: PublicKey
 ) => {
-  const nftWeightRecordsFiltered = ((await client.program.account.nftWeightRecord.all()) as unknown) as NftWeightRecord[]
+  const nftWeightRecordsFiltered = ((await client.program.account.nftWeightRecord.all(
+    [
+      {
+        memcmp: {
+          offset: 8,
+          bytes: owner.toBase58(),
+        },
+      },
+    ]
+  )) as unknown) as NftWeightRecord[]
   return nftWeightRecordsFiltered
 }
 
@@ -65,6 +74,7 @@ export const getNftVoteRecordProgramAddress = async (
 
 export const getNftWeightRecordProgramAddress = async (
   nftMintAddress: string,
+  owner: PublicKey,
   clientProgramId: PublicKey
 ) => {
   const [
@@ -73,6 +83,7 @@ export const getNftWeightRecordProgramAddress = async (
   ] = await PublicKey.findProgramAddress(
     [
       Buffer.from('nft-weight-record'),
+      owner.toBuffer(),
       new PublicKey(nftMintAddress).toBuffer(),
     ],
     clientProgramId
