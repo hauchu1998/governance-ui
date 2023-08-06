@@ -23,8 +23,10 @@ import {
 import { chunks } from '@utils/helpers'
 import { UiInstruction } from '@utils/uiTypes/proposalCreationTypes'
 import { VotingClient } from '@utils/uiTypes/VotePlugin'
+import { NftVoterClient } from '@utils/uiTypes/NftVoterClient'
 import { trySentryLog } from '@utils/logs'
 import { deduplicateObjsFilter } from '@utils/instructionTools'
+
 export interface InstructionDataWithHoldUpTime {
   data: InstructionData | null
   holdUpTime: number | undefined
@@ -209,27 +211,79 @@ export const createProposal = async (
     ...signerChunks,
   ]
 
-  const txes = [
-    ...chunks(deduplicatedPrerequisiteInstructions, lowestChunkBy),
-    instructions,
-    ...insertChunks,
-  ].map((txBatch, batchIdx) => {
-    return {
-      instructionsSet: txBatchesToInstructionSetWithSigners(
-        txBatch,
-        signersSet,
-        batchIdx
-      ),
-      sequenceType: SequenceType.Sequential,
-    }
-  })
-  console.log('txes', txes)
-  await sendTransactionsV3({
-    callbacks,
-    connection,
-    wallet,
-    transactionInstructions: txes,
-  })
+  const isNftVoter = client?.client instanceof NftVoterClient
+  if (!isNftVoter) {
+    const txes = [
+      ...chunks(deduplicatedPrerequisiteInstructions, lowestChunkBy),
+      instructions,
+      ...insertChunks,
+    ].map((txBatch, batchIdx) => {
+      return {
+        instructionsSet: txBatchesToInstructionSetWithSigners(
+          txBatch,
+          signersSet,
+          batchIdx
+        ),
+        sequenceType: SequenceType.Sequential,
+      }
+    })
+
+    await sendTransactionsV3({
+      callbacks,
+      connection,
+      wallet,
+      transactionInstructions: txes,
+    })
+  }
+
+  if (isNftVoter) {
+    // update voter weight records
+    const ixChunkCount = 3
+    const createNftWeightRecordIxs = instructions.slice(
+      0,
+      instructions.length - ixChunkCount
+    )
+    const nftWeightRecordAccountsChuncks = chunks(createNftWeightRecordIxs, 1)
+
+    const remainingIxs = instructions.slice(-ixChunkCount)
+    const splIxsWithAccountsChunk = [
+      ...chunks(deduplicatedPrerequisiteInstructions, lowestChunkBy),
+      remainingIxs,
+      ...insertChunks,
+    ]
+
+    const instructionsChunks = [
+      ...nftWeightRecordAccountsChuncks.map((txBatch, batchIdx) => {
+        return {
+          instructionsSet: txBatchesToInstructionSetWithSigners(
+            txBatch,
+            [],
+            batchIdx
+          ),
+          sequenceType: SequenceType.Parallel,
+        }
+      }),
+      ...splIxsWithAccountsChunk.map((txBatch, batchIdx) => {
+        return {
+          instructionsSet: txBatchesToInstructionSetWithSigners(
+            txBatch,
+            signersSet,
+            batchIdx
+          ),
+          sequenceType: SequenceType.Sequential,
+        }
+      }),
+    ]
+
+    // should add checking user has enough sol, refer castVote
+
+    await sendTransactionsV3({
+      connection,
+      wallet,
+      transactionInstructions: instructionsChunks,
+      callbacks,
+    })
+  }
 
   const logInfo = {
     realmId: realm.pubkey.toBase58(),

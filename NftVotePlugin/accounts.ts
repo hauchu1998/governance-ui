@@ -45,3 +45,19 @@ export const getNftVoteRecordProgramAddress = async (
     nftVoteRecordBump,
   }
 }
+
+export const getNftWeightRecordProgramAddress = async (
+  nftMintAddress: string,
+  clientProgramId: PublicKey
+) => {
+  const [nftWeightRecord, nftWeightRecordBump] =
+    await PublicKey.findProgramAddress(
+      [Buffer.from('nft-weight-record'), new PublicKey(nftMintAddress).toBuffer()],
+      clientProgramId
+    )
+
+  return {
+    nftWeightRecord,
+    nftWeightRecordBump,
+  }
+}

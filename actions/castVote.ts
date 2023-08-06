@@ -56,6 +56,7 @@ export async function castVote(
 ) {
   const signers: Keypair[] = []
   const instructions: TransactionInstruction[] = []
+  const createNftWeightRecordIxs: TransactionInstruction[] = []
 
   const governanceAuthority = walletPubkey
   const payer = walletPubkey
@@ -70,7 +71,8 @@ export async function castVote(
   const plugin = await votingPlugin?.withCastPluginVote(
     instructions,
     proposal,
-    tokenOwnerRecord
+    tokenOwnerRecord,
+    createNftWeightRecordIxs
   )
 
   // It is not clear that defining these extraneous fields, `deny` and `veto`, is actually necessary.
@@ -225,10 +227,16 @@ export async function castVote(
       instructions.length - ixChunkCount
     )
 
+    const createNftWeightRecordsChunks = chunks(createNftWeightRecordIxs, 1)
     const splIxsWithAccountsChunk = chunks(ixsWithOwnChunk, 2)
-    const nftsAccountsChunks = chunks(remainingIxsToChunk, 1)
+    const nftsAccountsChunks = chunks(remainingIxsToChunk, 2)
+    console.log(
+      createNftWeightRecordsChunks,
+      splIxsWithAccountsChunk,
+      nftsAccountsChunks
+    )
     const instructionsChunks = [
-      ...nftsAccountsChunks.map((txBatch, batchIdx) => {
+      ...createNftWeightRecordsChunks.map((txBatch, batchIdx) => {
         return {
           instructionsSet: txBatchesToInstructionSetWithSigners(
             txBatch,
@@ -236,6 +244,17 @@ export async function castVote(
             batchIdx
           ),
           sequenceType: SequenceType.Parallel,
+        }
+      }),
+      ...nftsAccountsChunks.map((txBatch, batchIdx) => {
+        return {
+          instructionsSet: txBatchesToInstructionSetWithSigners(
+            txBatch,
+            [],
+            batchIdx
+          ),
+          sequenceType:
+            batchIdx === 0 ? SequenceType.Sequential : SequenceType.Parallel,
         }
       }),
       ...splIxsWithAccountsChunk.map((txBatch, batchIdx) => {
