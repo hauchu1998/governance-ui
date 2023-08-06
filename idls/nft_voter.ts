@@ -387,7 +387,14 @@ export type NftVoter = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "voterWeightAction",
+          "type": {
+            "defined": "VoterWeightAction"
+          }
+        }
+      ]
     },
     {
       "name": "createCnftVoteTicket",
@@ -429,6 +436,12 @@ export type NftVoter = {
         }
       ],
       "args": [
+        {
+          "name": "voterWeightAction",
+          "type": {
+            "defined": "VoterWeightAction"
+          }
+        },
         {
           "name": "params",
           "type": {
@@ -1473,7 +1486,14 @@ export const IDL: NftVoter = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "voterWeightAction",
+          "type": {
+            "defined": "VoterWeightAction"
+          }
+        }
+      ]
     },
     {
       "name": "createCnftVoteTicket",
@@ -1515,6 +1535,12 @@ export const IDL: NftVoter = {
         }
       ],
       "args": [
+        {
+          "name": "voterWeightAction",
+          "type": {
+            "defined": "VoterWeightAction"
+          }
+        },
         {
           "name": "params",
           "type": {

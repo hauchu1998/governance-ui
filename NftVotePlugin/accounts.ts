@@ -35,7 +35,7 @@ export const getUsedNftsForProposal = async (
   return nftVoteRecordsFiltered
 }
 
-export const getVoterNftVoteTicketsForRegistrar = async (
+export const getNftVoteTicketsForRegistrar = async (
   client: NftVoterClient,
   registrar: PublicKey
 ) => {
@@ -73,13 +73,14 @@ export const getNftVoteRecordProgramAddress = async (
 }
 
 export const getNftVoteTicketProgramAddress = async (
-  nftMintAddress: string,
+  ticketType: string,
   registrar: PublicKey,
+  nftMintAddress: string,
   clientProgramId: PublicKey
 ) => {
   const [nftVoteTicket, nftVoteTicketBump] = await PublicKey.findProgramAddress(
     [
-      Buffer.from('nft-weight-record'),
+      Buffer.from(ticketType),
       registrar.toBuffer(),
       new PublicKey(nftMintAddress).toBuffer(),
     ],
