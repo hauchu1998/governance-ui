@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react'
-import { getNfts } from '@utils/tokens'
+// import { getNfts } from '@utils/tokens'
+import { PublicKey, TransactionInstruction } from '@solana/web3.js'
 import useNftPluginStore from 'NftVotePlugin/store/nftPluginStore'
 import useVotePluginsClientStore from 'stores/useVotePluginsClientStore'
 import { getMaxVoterWeightRecord } from '@solana/spl-governance'
@@ -8,7 +9,7 @@ import { notify } from '@utils/notifications'
 
 import useGatewayPluginStore from '../GatewayPlugin/store/gatewayPluginStore'
 import { getGatekeeperNetwork } from '../GatewayPlugin/sdk/accounts'
-import { NFTWithMeta } from '@utils/uiTypes/VotePlugin'
+// import { NFTWithMeta } from '@utils/uiTypes/VotePlugin'
 import useHeliumVsrStore from 'HeliumVotePlugin/hooks/useHeliumVsrStore'
 import * as heliumVsrSdk from '@helium/voter-stake-registry-sdk'
 import useWalletOnePointOh from './useWalletOnePointOh'
@@ -22,6 +23,9 @@ import {
   GATEWAY_PLUGINS_PKS,
 } from '../constants/plugins'
 import useUserOrDelegator from './useUserOrDelegator'
+import { fetchDigitalAssetsByOwner } from './queries/digitalAssets'
+import { getNetworkFromEndpoint } from '@utils/connection'
+import { SUPPORT_CNFTS } from '@constants/flags'
 
 export function useVotingPlugins() {
   const realm = useRealmQuery().data?.result
@@ -114,14 +118,16 @@ export function useVotingPlugins() {
   ])
 
   const getIsFromCollection = useCallback(
-    (nft: NFTWithMeta) => {
+    (nft: any) => {
+      const collection = nft.grouping.find((x) => x.group_key === 'collection')
       return (
-        nft.collection &&
-        nft.collection.mintAddress &&
-        (nft.collection.verified ||
-          typeof nft.collection.verified === 'undefined') &&
-        usedCollectionsPks.includes(nft.collection.mintAddress) &&
-        nft.collection.creators?.filter((x) => x.verified).length > 0
+        (SUPPORT_CNFTS || !nft.compression.compressed) &&
+        nft.grouping &&
+        collection &&
+        collection.group_value &&
+        (collection.verified || typeof collection.verified === 'undefined') &&
+        usedCollectionsPks.includes(collection.group_value) &&
+        nft.creators?.filter((x) => x.verified).length > 0
       )
     },
     [usedCollectionsPks]
@@ -327,7 +333,10 @@ export function useVotingPlugins() {
     setIsLoadingNfts(true)
     if (!wallet?.publicKey) return
     try {
-      const nfts = await getNfts(wallet.publicKey, connection)
+      // const nfts = await getNfts(wallet.publicKey, connection)
+      const network = getNetworkFromEndpoint(connection.endpoint)
+      if (network === 'localnet') throw new Error()
+      const nfts = await fetchDigitalAssetsByOwner(network, wallet.publicKey)
       const votingNfts = nfts.filter(getIsFromCollection)
       const nftsWithMeta = votingNfts
       setVotingNfts(nftsWithMeta, currentClient, nftMintRegistrar)

@@ -25,7 +25,7 @@ import { accountsToPubkeyMap } from '@tools/sdk/accounts'
 import { fmtMintAmount } from '@tools/sdk/units'
 import { notify } from '@utils/notifications'
 import tokenPriceService from '@utils/services/tokenPrice'
-import { Member } from '@utils/uiTypes/members'
+import { Member, NftPluginMember } from '@utils/uiTypes/members'
 import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import { WalletTokenRecordWithProposal } from './types'
 import PaginationComponent from '@components/Pagination'
@@ -109,7 +109,43 @@ const RevokeMembership: FC<{ member: PublicKey; mint: PublicKey }> = ({
   )
 }
 
-const MemberOverview = ({ member }: { member: Member }) => {
+const getNftMetadataTooltip = (nft) => {
+  // console.log(nft)
+  const collection = nft.grouping.find((x) => x.group_key === 'collection')
+    ?.group_value
+  return (
+    <div>
+      <div className="w-full text-center text-lg">
+        {nft.compression.compressed ? 'Compressed NFT' : 'NFT'}
+      </div>
+      <div className="w-full">
+        <p>
+          Name: <span className="font-bold">{nft.content.metadata.name}</span>
+        </p>
+        <p>
+          Symbol:{' '}
+          <span className="font-bold">{nft.content.metadata.symbol}</span>
+        </p>
+        <p>
+          Description:{' '}
+          <span className="font-bold">{nft.content.metadata.description}</span>
+        </p>
+        <p>
+          {nft.compression.compressed ? 'Asset ID: ' : 'Address: '}{' '}
+          <span className="font-bold">{nft.id}</span>
+        </p>
+        <p>
+          Ownership: <span className="font-bold">{nft.ownership.owner}</span>
+        </p>
+        <p>
+          Collection: <span className="font-bold">{collection}</span>
+        </p>
+      </div>
+    </div>
+  )
+}
+
+const MemberOverview = ({ member }: { member: Member | NftPluginMember }) => {
   const programVersion = useProgramVersion()
   const realm = useRealmQuery().data?.result
   const config = useRealmConfigQuery().data?.result
@@ -356,6 +392,25 @@ const MemberOverview = ({ member }: { member: Member }) => {
               {ownVoteRecords.filter((v) => !isYesVote(v.account))?.length}
             </p>
           </div>
+        </div>
+      </div>
+      <div className="py-3 flex flex-col space-y-3 md:space-y-3 md:flex-row md:space-x-3 max-h-64">
+        <div className="bg-bkg-1 px-4 py-2 rounded-md w-full break-all flex items-center justify-center max-h-64">
+          {(communityAmount || !councilAmount) &&
+            (member as NftPluginMember).nfts && (
+              <span className="w-full mt-2 grid grid-cols-10 items-center gap-4 max-h-64 overflow-y-scroll">
+                {(member as NftPluginMember).nfts.map((nft) => {
+                  return (
+                    <Tooltip key={nft.id} content={getNftMetadataTooltip(nft)}>
+                      <img
+                        className="w-12 h-12"
+                        src={nft.content.links?.image}
+                      />
+                    </Tooltip>
+                  )
+                })}
+              </span>
+            )}
         </div>
       </div>
       <div className="pt-4">
