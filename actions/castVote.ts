@@ -56,6 +56,8 @@ export async function castVote(
 ) {
   const signers: Keypair[] = []
   const instructions: TransactionInstruction[] = []
+  const createNftCastVoteTicketIxs: TransactionInstruction[] = []
+  const createNftMessageTicketIxs: TransactionInstruction[] = []
 
   const governanceAuthority = walletPubkey
   const payer = walletPubkey
@@ -70,7 +72,8 @@ export async function castVote(
   const plugin = await votingPlugin?.withCastPluginVote(
     instructions,
     proposal,
-    tokenOwnerRecord
+    tokenOwnerRecord,
+    createNftCastVoteTicketIxs
   )
 
   // It is not clear that defining these extraneous fields, `deny` and `veto`, is actually necessary.
@@ -130,7 +133,9 @@ export async function castVote(
     const plugin = await votingPlugin?.withUpdateVoterWeightRecord(
       instructions,
       tokenOwnerRecord,
-      'commentProposal'
+      'commentProposal',
+      undefined,
+      createNftMessageTicketIxs
     )
 
     await withPostChatMessage(
@@ -225,10 +230,15 @@ export async function castVote(
       instructions.length - ixChunkCount
     )
 
+    const createNftVoteTicketsChunks = chunks(
+      [...createNftCastVoteTicketIxs, ...createNftMessageTicketIxs],
+      1
+    )
+    const nftsAccountsChunks = chunks(remainingIxsToChunk, 2)
     const splIxsWithAccountsChunk = chunks(ixsWithOwnChunk, 2)
-    const nftsAccountsChunks = chunks(remainingIxsToChunk, 1)
+
     const instructionsChunks = [
-      ...nftsAccountsChunks.map((txBatch, batchIdx) => {
+      ...createNftVoteTicketsChunks.map((txBatch, batchIdx) => {
         return {
           instructionsSet: txBatchesToInstructionSetWithSigners(
             txBatch,
@@ -236,6 +246,18 @@ export async function castVote(
             batchIdx
           ),
           sequenceType: SequenceType.Parallel,
+        }
+      }),
+      ...nftsAccountsChunks.map((txBatch, batchIdx) => {
+        return {
+          instructionsSet: txBatchesToInstructionSetWithSigners(
+            txBatch,
+            [],
+            batchIdx
+          ),
+          sequenceType:
+            // this is to ensure create all the nft_weight_records account first
+            batchIdx === 0 ? SequenceType.Sequential : SequenceType.Parallel,
         }
       }),
       ...splIxsWithAccountsChunk.map((txBatch, batchIdx) => {

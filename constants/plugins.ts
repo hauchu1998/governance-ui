@@ -18,7 +18,8 @@ export const HELIUM_VSR_PLUGINS_PKS: string[] = [
 export const NFT_PLUGINS_PKS: string[] = [
   DEFAULT_NFT_VOTER_PLUGIN,
   'GnftV5kLjd67tvHpNGyodwWveEKivz3ZWvvE3Z4xi2iw',
-  'GnftVc21v2BRchsRa9dGdrVmJPLZiRHe9j2offnFTZFg',
+  'GnftVc21v2BRchsRa9dGdrVmJPLZiRHe9j2offnFTZFg', // support nft and cnft(version: verification and vote actions are in same instruction)
+  'GnFtjPodvrUFr2UYVFPUZUE6sMVoMWEJazd6NZZDkAXd', //support nft and cnft(version: verification and vote actions are splited to different instruction)
 ]
 
 export const GATEWAY_PLUGINS_PKS: string[] = [
