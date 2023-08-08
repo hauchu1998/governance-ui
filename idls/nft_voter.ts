@@ -494,7 +494,15 @@ export type NftVoter = {
         "kind": "struct",
         "fields": [
           {
-            "name": "nftOwner",
+            "name": "registrar",
+            "type": "publicKey"
+          },
+          {
+            "name": "governingTokenOwner",
+            "type": "publicKey"
+          },
+          {
+            "name": "nftMint",
             "type": "publicKey"
           },
           {
@@ -1593,7 +1601,15 @@ export const IDL: NftVoter = {
         "kind": "struct",
         "fields": [
           {
-            "name": "nftOwner",
+            "name": "registrar",
+            "type": "publicKey"
+          },
+          {
+            "name": "governingTokenOwner",
+            "type": "publicKey"
+          },
+          {
+            "name": "nftMint",
             "type": "publicKey"
           },
           {

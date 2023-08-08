@@ -285,6 +285,7 @@ export class VotingClient {
       /// this should add walletPk to the list of oracles
       const nftVoteTicketsFiltered = await getNftVoteTicketsForVoter(
         this.client,
+        registrar,
         walletPk
       )
 
@@ -300,6 +301,7 @@ export class VotingClient {
         const { nftVoteTicket } = await getNftVoteTicketProgramAddress(
           ticketType,
           registrar,
+          walletPk,
           nft.id,
           clientProgramId
         )
@@ -351,6 +353,7 @@ export class VotingClient {
         const { nftVoteTicket } = await getNftVoteTicketProgramAddress(
           ticketType,
           registrar,
+          walletPk,
           cnft.id,
           clientProgramId
         )
@@ -605,6 +608,7 @@ export class VotingClient {
       )
       const nftVoteTicketsFiltered = await getNftVoteTicketsForVoter(
         this.client,
+        registrar,
         walletPk
       )
       const castVoteRemainingAccounts: AccountData[] = []
@@ -628,6 +632,7 @@ export class VotingClient {
           const { nftVoteTicket } = await getNftVoteTicketProgramAddress(
             ticketType,
             registrar,
+            walletPk,
             nft.id,
             clientProgramId
           )
@@ -654,7 +659,6 @@ export class VotingClient {
             )
           }
           castVoteRemainingAccounts.push(
-            new AccountData(nft.id),
             new AccountData(nftVoteTicket, false, true),
             new AccountData(nftVoteRecord, false, true)
           )
@@ -694,6 +698,7 @@ export class VotingClient {
           const { nftVoteTicket } = await getNftVoteTicketProgramAddress(
             ticketType,
             registrar,
+            walletPk,
             cnft.id,
             clientProgramId
           )
@@ -728,19 +733,14 @@ export class VotingClient {
           }
 
           castVoteRemainingAccounts.push(
-            new AccountData(cnft.id),
             new AccountData(nftVoteTicket, false, true),
             new AccountData(nftVoteRecord, false, true)
           )
         }
       }
-      console.log(
-        'cast vote remaining Accounts length: ',
-        castVoteRemainingAccounts.length
-      )
       const castVoteRemainingAccountsChunks = chunks(
         castVoteRemainingAccounts,
-        9
+        12
       )
       for (const chunk of [...castVoteRemainingAccountsChunks]) {
         instructions.push(

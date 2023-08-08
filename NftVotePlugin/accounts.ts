@@ -37,6 +37,7 @@ export const getUsedNftsForProposal = async (
 
 export const getNftVoteTicketsForVoter = async (
   client: NftVoterClient,
+  registrar: PublicKey,
   voter: PublicKey
 ) => {
   const nftVoteTicketsFiltered = ((await client.program.account.nftVoteTicket.all(
@@ -44,6 +45,12 @@ export const getNftVoteTicketsForVoter = async (
       {
         memcmp: {
           offset: 8,
+          bytes: registrar.toBase58(),
+        },
+      },
+      {
+        memcmp: {
+          offset: 40,
           bytes: voter.toBase58(),
         },
       },
@@ -75,6 +82,7 @@ export const getNftVoteRecordProgramAddress = async (
 export const getNftVoteTicketProgramAddress = async (
   ticketType: string,
   registrar: PublicKey,
+  owner: PublicKey,
   nftMintAddress: string,
   clientProgramId: PublicKey
 ) => {
@@ -82,6 +90,7 @@ export const getNftVoteTicketProgramAddress = async (
     [
       Buffer.from(ticketType),
       registrar.toBuffer(),
+      owner.toBuffer(),
       new PublicKey(nftMintAddress).toBuffer(),
     ],
     clientProgramId
