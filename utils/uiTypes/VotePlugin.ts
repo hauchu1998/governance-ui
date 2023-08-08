@@ -33,7 +33,7 @@ import { VsrClient } from 'VoteStakeRegistry/sdk/client'
 import {
   getNftVoteRecordProgramAddress,
   getNftVoteTicketProgramAddress,
-  getNftVoteTicketsForRegistrar,
+  getNftVoteTicketsForVoter,
   getUsedNftsForProposal,
 } from 'NftVotePlugin/accounts'
 import { PositionWithMeta } from 'HeliumVotePlugin/sdk/types'
@@ -283,9 +283,9 @@ export class VotingClient {
       )
 
       /// this should add walletPk to the list of oracles
-      const nftVoteTicketsFiltered = await getNftVoteTicketsForRegistrar(
+      const nftVoteTicketsFiltered = await getNftVoteTicketsForVoter(
         this.client,
-        registrar
+        walletPk
       )
 
       const ticketType = `nft-${type}-ticket`
@@ -603,9 +603,9 @@ export class VotingClient {
         this.client,
         proposal.pubkey
       )
-      const nftVoteTicketsFiltered = await getNftVoteTicketsForRegistrar(
+      const nftVoteTicketsFiltered = await getNftVoteTicketsForVoter(
         this.client,
-        registrar
+        walletPk
       )
       const castVoteRemainingAccounts: AccountData[] = []
 
