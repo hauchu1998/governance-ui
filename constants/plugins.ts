@@ -18,8 +18,8 @@ export const HELIUM_VSR_PLUGINS_PKS: string[] = [
 export const NFT_PLUGINS_PKS: string[] = [
   DEFAULT_NFT_VOTER_PLUGIN,
   'GnftV5kLjd67tvHpNGyodwWveEKivz3ZWvvE3Z4xi2iw',
-  'GnftVc21v2BRchsRa9dGdrVmJPLZiRHe9j2offnFTZFg',
-  'GnFtjPodvrUFr2UYVFPUZUE6sMVoMWEJazd6NZZDkAXd',
+  'GnftVc21v2BRchsRa9dGdrVmJPLZiRHe9j2offnFTZFg', // for nft-vote-plugin (w/ cnft) devnet
+  'GnFtjPodvrUFr2UYVFPUZUE6sMVoMWEJazd6NZZDkAXd', //for nft-vote-plugin (w/ cnft) for testing
 ]
 
 export const GATEWAY_PLUGINS_PKS: string[] = [
