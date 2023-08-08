@@ -240,7 +240,7 @@ export const createProposal = async (
 
   if (isNftVoter) {
     // update voter weight records
-    const nftWeightRecordAccountsChuncks = chunks(createNftProposalTicketIxs, 1)
+    const nftTicketAccountsChuncks = chunks(createNftProposalTicketIxs, 1)
     const splIxsWithAccountsChunk = [
       ...chunks(deduplicatedPrerequisiteInstructions, lowestChunkBy),
       instructions,
@@ -248,7 +248,7 @@ export const createProposal = async (
     ]
 
     const instructionsChunks = [
-      ...nftWeightRecordAccountsChuncks.map((txBatch, batchIdx) => {
+      ...nftTicketAccountsChuncks.map((txBatch, batchIdx) => {
         return {
           instructionsSet: txBatchesToInstructionSetWithSigners(
             txBatch,
