@@ -32,8 +32,7 @@ import {
 import { VsrClient } from 'VoteStakeRegistry/sdk/client'
 import {
   getNftVoteRecordProgramAddress,
-  getNftVoteTicketProgramAddress,
-  getNftVoteTicketsForVoter,
+  getNftActionTicketProgramAddress,
   getUsedNftsForProposal,
 } from 'NftVotePlugin/accounts'
 import { PositionWithMeta } from 'HeliumVotePlugin/sdk/types'
@@ -175,7 +174,7 @@ export class VotingClient {
     tokenOwnerRecord: ProgramAccount<TokenOwnerRecord>,
     type: UpdateVoterWeightRecordTypes,
     voterWeightTarget?: PublicKey,
-    createNftVoteTicketIxs?: TransactionInstruction[]
+    createNftActionTicketIxs?: TransactionInstruction[]
   ): Promise<ProgramAddresses | undefined> => {
     const realm = this.realm!
 
@@ -282,58 +281,48 @@ export class VotingClient {
         instructions
       )
 
-      /// this should add walletPk to the list of oracles
-      const nftVoteTicketsFiltered = await getNftVoteTicketsForVoter(
-        this.client,
-        registrar,
-        walletPk
-      )
-
       const ticketType = `nft-${type}-ticket`
 
       // udpate voter weight record can upmost encapsulate 10 nfts
       const firstTenNfts = this.votingNfts.slice(0, 10)
-      const nftVoteTicketAccounts: AccountData[] = []
+      const nftActionTicketAccounts: AccountData[] = []
 
       const nfts = firstTenNfts.filter((x) => !x.compression.compressed)
       const nftRemainingAccounts: AccountData[] = []
       for (const nft of nfts) {
-        const { nftVoteTicket } = await getNftVoteTicketProgramAddress(
+        const { nftActionTicket } = await getNftActionTicketProgramAddress(
           ticketType,
           registrar,
           walletPk,
           nft.id,
           clientProgramId
         )
-        if (
-          !nftVoteTicketsFiltered.find(
-            (x) => x.publicKey.toBase58 === nftVoteTicket.toBase58
-          )
-        ) {
-          const tokenAccount = await getAssociatedTokenAddress(
-            new PublicKey(nft.id),
-            walletPk,
-            true
-          )
-          const metadata = await fetchNFTbyMint(
-            this.client.program.provider.connection,
-            new PublicKey(nft.id)
-          )
-          nftRemainingAccounts.push(
-            new AccountData(tokenAccount),
-            new AccountData(metadata?.result?.metadataAddress || ''),
-            new AccountData(nftVoteTicket, false, true)
-          )
-        }
 
-        nftVoteTicketAccounts.push(new AccountData(nftVoteTicket, false, true))
+        const tokenAccount = await getAssociatedTokenAddress(
+          new PublicKey(nft.id),
+          walletPk,
+          true
+        )
+        const metadata = await fetchNFTbyMint(
+          this.client.program.provider.connection,
+          new PublicKey(nft.id)
+        )
+        nftRemainingAccounts.push(
+          new AccountData(tokenAccount),
+          new AccountData(metadata?.result?.metadataAddress || ''),
+          new AccountData(nftActionTicket, false, true)
+        )
+
+        nftActionTicketAccounts.push(
+          new AccountData(nftActionTicket, false, true)
+        )
       }
 
       const nftChunks = chunks(nftRemainingAccounts, 15)
       for (const chunk of [...nftChunks]) {
-        createNftVoteTicketIxs?.push(
+        createNftActionTicketIxs?.push(
           await this.client.program.methods
-            .createNftVoteTicket({ [type]: {} })
+            .createNftActionTicket({ [type]: {} })
             .accounts({
               registrar,
               voterWeightRecord: voterWeightPk,
@@ -350,42 +339,39 @@ export class VotingClient {
         (x) => x.compression.compressed
       )
       for (const cnft of compressedNfts) {
-        const { nftVoteTicket } = await getNftVoteTicketProgramAddress(
+        const { nftActionTicket } = await getNftActionTicketProgramAddress(
           ticketType,
           registrar,
           walletPk,
           cnft.id,
           clientProgramId
         )
-        if (
-          !nftVoteTicketsFiltered.find(
-            (x) => x.publicKey.toBase58 === nftVoteTicket.toBase58
-          )
-        ) {
-          const {
-            param,
-            additionalAccounts,
-          } = await getCompressedNftParamAndProof(
-            this.client.program.provider.connection,
-            cnft
-          )
-          const instruction = await this.client.program.methods
-            .createCnftVoteTicket({ [type]: {} }, [param])
-            .accounts({
-              registrar,
-              voterWeightRecord: voterWeightPk,
-              leafOwner: new PublicKey(cnft.ownership.owner),
-              compressionProgram: ACCOUNT_COMPACTION_PROGRAM_ID,
-            })
-            .remainingAccounts([
-              ...additionalAccounts,
-              new AccountData(nftVoteTicket, false, true),
-            ])
-            .instruction()
-          createNftVoteTicketIxs?.push(instruction)
-        }
 
-        nftVoteTicketAccounts.push(new AccountData(nftVoteTicket, false, true))
+        const {
+          param,
+          additionalAccounts,
+        } = await getCompressedNftParamAndProof(
+          this.client.program.provider.connection,
+          cnft
+        )
+        const instruction = await this.client.program.methods
+          .createCnftActionTicket({ [type]: {} }, [param])
+          .accounts({
+            registrar,
+            voterWeightRecord: voterWeightPk,
+            leafOwner: new PublicKey(cnft.ownership.owner),
+            compressionProgram: ACCOUNT_COMPACTION_PROGRAM_ID,
+          })
+          .remainingAccounts([
+            ...additionalAccounts,
+            new AccountData(nftActionTicket, false, true),
+          ])
+          .instruction()
+        createNftActionTicketIxs?.push(instruction)
+
+        nftActionTicketAccounts.push(
+          new AccountData(nftActionTicket, false, true)
+        )
       }
 
       const updateVoterWeightRecordIx = await this.client.program.methods
@@ -395,7 +381,7 @@ export class VotingClient {
           voterWeightRecord: voterWeightPk,
           payer: walletPk,
         })
-        .remainingAccounts(nftVoteTicketAccounts)
+        .remainingAccounts(nftActionTicketAccounts)
         .instruction()
       instructions.push(updateVoterWeightRecordIx)
       return { voterWeightPk, maxVoterWeightRecord }
@@ -453,7 +439,7 @@ export class VotingClient {
     instructions: TransactionInstruction[],
     proposal: ProgramAccount<Proposal>,
     tokenOwnerRecord: ProgramAccount<TokenOwnerRecord>,
-    createNftVoteTicketIxs?: TransactionInstruction[]
+    createNftActionTicketIxs?: TransactionInstruction[]
   ): Promise<ProgramAddresses | undefined> => {
     if (this.noClient) {
       return
@@ -606,11 +592,6 @@ export class VotingClient {
         this.client,
         proposal.pubkey
       )
-      const nftVoteTicketsFiltered = await getNftVoteTicketsForVoter(
-        this.client,
-        registrar,
-        walletPk
-      )
       const castVoteRemainingAccounts: AccountData[] = []
 
       const type: UpdateVoterWeightRecordTypes = 'castVote'
@@ -629,7 +610,7 @@ export class VotingClient {
             (x) => x.publicKey.toBase58() === nftVoteRecord.toBase58()
           )
         ) {
-          const { nftVoteTicket } = await getNftVoteTicketProgramAddress(
+          const { nftActionTicket } = await getNftActionTicketProgramAddress(
             ticketType,
             registrar,
             walletPk,
@@ -637,29 +618,24 @@ export class VotingClient {
             clientProgramId
           )
 
-          if (
-            !nftVoteTicketsFiltered.find(
-              (x) => x.publicKey.toBase58() === nftVoteTicket.toBase58()
-            )
-          ) {
-            const tokenAccount = await getAssociatedTokenAddress(
-              new PublicKey(nft.id),
-              walletPk,
-              true
-            )
-            const metadata = await fetchNFTbyMint(
-              this.client.program.provider.connection,
-              new PublicKey(nft.id)
-            )
+          const tokenAccount = await getAssociatedTokenAddress(
+            new PublicKey(nft.id),
+            walletPk,
+            true
+          )
+          const metadata = await fetchNFTbyMint(
+            this.client.program.provider.connection,
+            new PublicKey(nft.id)
+          )
 
-            nftRemainingAccounts.push(
-              new AccountData(tokenAccount),
-              new AccountData(metadata?.result?.metadataAddress || ''),
-              new AccountData(nftVoteTicket, false, true)
-            )
-          }
+          nftRemainingAccounts.push(
+            new AccountData(tokenAccount),
+            new AccountData(metadata?.result?.metadataAddress || ''),
+            new AccountData(nftActionTicket, false, true)
+          )
+
           castVoteRemainingAccounts.push(
-            new AccountData(nftVoteTicket, false, true),
+            new AccountData(nftActionTicket, false, true),
             new AccountData(nftVoteRecord, false, true)
           )
         }
@@ -667,9 +643,9 @@ export class VotingClient {
 
       const createNftVoteTicketChunks = chunks(nftRemainingAccounts, 15)
       for (const chunk of [...createNftVoteTicketChunks]) {
-        createNftVoteTicketIxs?.push(
+        createNftActionTicketIxs?.push(
           await this.client.program.methods
-            .createNftVoteTicket({ [type]: {} })
+            .createNftActionTicket({ [type]: {} })
             .accounts({
               registrar,
               voterWeightRecord: voterWeightPk,
@@ -695,7 +671,7 @@ export class VotingClient {
             (x) => x.publicKey.toBase58() === nftVoteRecord.toBase58()
           )
         ) {
-          const { nftVoteTicket } = await getNftVoteTicketProgramAddress(
+          const { nftActionTicket } = await getNftActionTicketProgramAddress(
             ticketType,
             registrar,
             walletPk,
@@ -703,37 +679,31 @@ export class VotingClient {
             clientProgramId
           )
 
-          if (
-            !nftVoteTicketsFiltered.find(
-              (x) => x.publicKey.toBase58() === nftVoteTicket.toBase58()
-            )
-          ) {
-            const {
-              param,
-              additionalAccounts,
-            } = await getCompressedNftParamAndProof(
-              this.client.program.provider.connection,
-              cnft
-            )
+          const {
+            param,
+            additionalAccounts,
+          } = await getCompressedNftParamAndProof(
+            this.client.program.provider.connection,
+            cnft
+          )
 
-            const instruction = await this.client.program.methods
-              .createCnftVoteTicket({ [type]: {} }, [param])
-              .accounts({
-                registrar,
-                voterWeightRecord: voterWeightPk,
-                leafOwner: new PublicKey(cnft.ownership.owner),
-                compressionProgram: ACCOUNT_COMPACTION_PROGRAM_ID,
-              })
-              .remainingAccounts([
-                ...additionalAccounts,
-                new AccountData(nftVoteTicket, false, true),
-              ])
-              .instruction()
-            createNftVoteTicketIxs?.push(instruction)
-          }
+          const instruction = await this.client.program.methods
+            .createCnftActionTicket({ [type]: {} }, [param])
+            .accounts({
+              registrar,
+              voterWeightRecord: voterWeightPk,
+              leafOwner: new PublicKey(cnft.ownership.owner),
+              compressionProgram: ACCOUNT_COMPACTION_PROGRAM_ID,
+            })
+            .remainingAccounts([
+              ...additionalAccounts,
+              new AccountData(nftActionTicket, false, true),
+            ])
+            .instruction()
+          createNftActionTicketIxs?.push(instruction)
 
           castVoteRemainingAccounts.push(
-            new AccountData(nftVoteTicket, false, true),
+            new AccountData(nftActionTicket, false, true),
             new AccountData(nftVoteRecord, false, true)
           )
         }
