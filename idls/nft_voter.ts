@@ -410,11 +410,6 @@ export type NftVoter = {
           "isSigner": false
         },
         {
-          "name": "leafOwner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "voterAuthority",
           "isMut": false,
           "isSigner": true
@@ -830,6 +825,10 @@ export type NftVoter = {
                 32
               ]
             }
+          },
+          {
+            "name": "leafOwner",
+            "type": "publicKey"
           },
           {
             "name": "leafDelegate",
@@ -1493,11 +1492,6 @@ export const IDL: NftVoter = {
           "isSigner": false
         },
         {
-          "name": "leafOwner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "voterAuthority",
           "isMut": false,
           "isSigner": true
@@ -1913,6 +1907,10 @@ export const IDL: NftVoter = {
                 32
               ]
             }
+          },
+          {
+            "name": "leafOwner",
+            "type": "publicKey"
           },
           {
             "name": "leafDelegate",

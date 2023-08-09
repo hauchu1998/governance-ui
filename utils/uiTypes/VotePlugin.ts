@@ -359,8 +359,9 @@ export class VotingClient {
           .accounts({
             registrar,
             voterWeightRecord: voterWeightPk,
-            leafOwner: new PublicKey(cnft.ownership.owner),
+            payer: walletPk,
             compressionProgram: ACCOUNT_COMPACTION_PROGRAM_ID,
+            systemProgram: SYSTEM_PROGRAM_ID,
           })
           .remainingAccounts([
             ...additionalAccounts,
@@ -692,8 +693,9 @@ export class VotingClient {
             .accounts({
               registrar,
               voterWeightRecord: voterWeightPk,
-              leafOwner: new PublicKey(cnft.ownership.owner),
+              payer: walletPk,
               compressionProgram: ACCOUNT_COMPACTION_PROGRAM_ID,
+              systemProgram: SYSTEM_PROGRAM_ID,
             })
             .remainingAccounts([
               ...additionalAccounts,
