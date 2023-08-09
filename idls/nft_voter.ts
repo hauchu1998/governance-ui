@@ -359,7 +359,7 @@ export type NftVoter = {
       ]
     },
     {
-      "name": "createNftVoteTicket",
+      "name": "createNftActionTicket",
       "accounts": [
         {
           "name": "registrar",
@@ -397,7 +397,7 @@ export type NftVoter = {
       ]
     },
     {
-      "name": "createCnftVoteTicket",
+      "name": "createCnftActionTicket",
       "accounts": [
         {
           "name": "registrar",
@@ -407,11 +407,6 @@ export type NftVoter = {
         {
           "name": "voterWeightRecord",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "leafOwner",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -489,7 +484,7 @@ export type NftVoter = {
       }
     },
     {
-      "name": "nftVoteTicket",
+      "name": "nftActionTicket",
       "type": {
         "kind": "struct",
         "fields": [
@@ -508,6 +503,12 @@ export type NftVoter = {
           {
             "name": "weight",
             "type": "u64"
+          },
+          {
+            "name": "expiry",
+            "type": {
+              "option": "u64"
+            }
           }
         ]
       }
@@ -826,6 +827,10 @@ export type NftVoter = {
             }
           },
           {
+            "name": "leafOwner",
+            "type": "publicKey"
+          },
+          {
             "name": "leafDelegate",
             "type": "publicKey"
           },
@@ -1054,53 +1059,23 @@ export type NftVoter = {
     },
     {
       "code": 6026,
-      "name": "LeafOwnerMustBePayer",
-      "msg": "Leaf Owner Must Be Payer"
-    },
-    {
-      "code": 6027,
-      "name": "LeafOwnerMustBeTokenOwner",
-      "msg": "Leaf Owner Must Be Token Owner"
-    },
-    {
-      "code": 6028,
-      "name": "InvalidMetadata",
-      "msg": "Invalid Metadata"
-    },
-    {
-      "code": 6029,
-      "name": "InvalidAssetId",
-      "msg": "Invalid AssetId"
-    },
-    {
-      "code": 6030,
-      "name": "InvalidCollectionMint",
-      "msg": "Invalid NFT Collection"
-    },
-    {
-      "code": 6031,
       "name": "GoverningTokenOwnerOrDelegateMustSign",
       "msg": "Governance Token Owner Or Delegate Must Sign"
     },
     {
-      "code": 6032,
-      "name": "LeafOwnerMustBeVoterAuthority",
-      "msg": "Leaf Owner Must Be Voter Authority"
-    },
-    {
-      "code": 6033,
-      "name": "AccountDataNotEmpty",
-      "msg": "Account Data Not Empty"
-    },
-    {
-      "code": 6034,
+      "code": 6027,
       "name": "NftFailedVerification",
       "msg": "NFT Failed Verification"
     },
     {
-      "code": 6035,
-      "name": "InvalidPdaOwner",
-      "msg": "Invalid PDA Owner"
+      "code": 6028,
+      "name": "NftTicketExpired",
+      "msg": "Nft Ticket Expired"
+    },
+    {
+      "code": 6029,
+      "name": "InvalidNftTicket",
+      "msg": "Voter With Invalid Ticket"
     }
   ]
 };
@@ -1466,7 +1441,7 @@ export const IDL: NftVoter = {
       ]
     },
     {
-      "name": "createNftVoteTicket",
+      "name": "createNftActionTicket",
       "accounts": [
         {
           "name": "registrar",
@@ -1504,7 +1479,7 @@ export const IDL: NftVoter = {
       ]
     },
     {
-      "name": "createCnftVoteTicket",
+      "name": "createCnftActionTicket",
       "accounts": [
         {
           "name": "registrar",
@@ -1514,11 +1489,6 @@ export const IDL: NftVoter = {
         {
           "name": "voterWeightRecord",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "leafOwner",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -1596,7 +1566,7 @@ export const IDL: NftVoter = {
       }
     },
     {
-      "name": "nftVoteTicket",
+      "name": "nftActionTicket",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1615,6 +1585,12 @@ export const IDL: NftVoter = {
           {
             "name": "weight",
             "type": "u64"
+          },
+          {
+            "name": "expiry",
+            "type": {
+              "option": "u64"
+            }
           }
         ]
       }
@@ -1933,6 +1909,10 @@ export const IDL: NftVoter = {
             }
           },
           {
+            "name": "leafOwner",
+            "type": "publicKey"
+          },
+          {
             "name": "leafDelegate",
             "type": "publicKey"
           },
@@ -2161,53 +2141,23 @@ export const IDL: NftVoter = {
     },
     {
       "code": 6026,
-      "name": "LeafOwnerMustBePayer",
-      "msg": "Leaf Owner Must Be Payer"
-    },
-    {
-      "code": 6027,
-      "name": "LeafOwnerMustBeTokenOwner",
-      "msg": "Leaf Owner Must Be Token Owner"
-    },
-    {
-      "code": 6028,
-      "name": "InvalidMetadata",
-      "msg": "Invalid Metadata"
-    },
-    {
-      "code": 6029,
-      "name": "InvalidAssetId",
-      "msg": "Invalid AssetId"
-    },
-    {
-      "code": 6030,
-      "name": "InvalidCollectionMint",
-      "msg": "Invalid NFT Collection"
-    },
-    {
-      "code": 6031,
       "name": "GoverningTokenOwnerOrDelegateMustSign",
       "msg": "Governance Token Owner Or Delegate Must Sign"
     },
     {
-      "code": 6032,
-      "name": "LeafOwnerMustBeVoterAuthority",
-      "msg": "Leaf Owner Must Be Voter Authority"
-    },
-    {
-      "code": 6033,
-      "name": "AccountDataNotEmpty",
-      "msg": "Account Data Not Empty"
-    },
-    {
-      "code": 6034,
+      "code": 6027,
       "name": "NftFailedVerification",
       "msg": "NFT Failed Verification"
     },
     {
-      "code": 6035,
-      "name": "InvalidPdaOwner",
-      "msg": "Invalid PDA Owner"
+      "code": 6028,
+      "name": "NftTicketExpired",
+      "msg": "Nft Ticket Expired"
+    },
+    {
+      "code": 6029,
+      "name": "InvalidNftTicket",
+      "msg": "Voter With Invalid Ticket"
     }
   ]
 };
